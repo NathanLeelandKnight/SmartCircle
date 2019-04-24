@@ -1,0 +1,1 @@
+﻿Get-Date | Export-Csv "C:\Users\nknight\OneDrive - The Smart Circle\Desktop\Date.csv"
