@@ -15,7 +15,7 @@ $ExternalSites = get-sposite `
                     | Where-Object {$_.SharingCapability -eq "ExternalUserSharingOnly"} `
                     | select -Property Url
 
-$activeUsers = foreach($Site in $ExternalSites){
+$ActiveUsers = foreach($Site in $ExternalSites){
     Write-Host "Finding activity for site: " $Site.Url
 
     Search-UnifiedAuditLog `
@@ -23,13 +23,15 @@ $activeUsers = foreach($Site in $ExternalSites){
         -StartDate 9/20/2019 `
         -EndDate 9/29/2019 `
         -ResultSize 5000 `
-        | select -Property UserIds
+        | select -Property UserIds `
 
     Write-Host "Completed"
     Write-Host
 }
 
-$approvedUsers = foreach($Site in $ExternalSites){
+$ActiveUsers = $ActiveUsers.UserIds | Sort-Object -Unique
+
+$ApprovedUsers = foreach($Site in $ExternalSites){
     Write-Host "Finding approved users for site: " $Site.Url
 
     Get-SPOExternalUser -Position 0 -PageSize 50 -SiteUrl $Site.Url `
@@ -38,5 +40,26 @@ $approvedUsers = foreach($Site in $ExternalSites){
     Write-Host "Completed"
     Write-Host
 }
+
+$ApprovedUsers = $ApprovedUsers.Email | Sort-Object -Unique
+
+#Find inactive externally shared users
+
+$KeepUsers = Compare-Object `
+    -ReferenceObject $ActiveUsers `
+    -DifferenceObject $ApprovedUsers `
+    -IncludeEqual `
+    -ExcludeDifferent `
+    | select -Property InputObject
+
+$KeepUsers = $KeepUsers.InputObject | Sort-Object -Unique
+
+$RemoveUsers = $ActiveUsers
+
+foreach($User in $KeepUsers){
+    $RemoveUsers = $ActiveUsers | Where-Object { $_ -ne $User }
+}
+
+#Remove-SPOUser 
 
 #Remove-PSSession $Session
