@@ -23,7 +23,7 @@ $ActiveUsers = foreach($Site in $ExternalSites){
         -StartDate 9/20/2019 `
         -EndDate 9/29/2019 `
         -ResultSize 5000 `
-        | select -Property UserIds `
+        | select -Property UserIds
 
     Write-Host "Completed"
     Write-Host
@@ -54,10 +54,10 @@ $KeepUsers = Compare-Object `
 
 $KeepUsers = $KeepUsers.InputObject | Sort-Object -Unique
 
-$RemoveUsers = $ActiveUsers
+$RemoveUsers = $ApprovedUsers
 
 foreach($User in $KeepUsers){
-    $RemoveUsers = $ActiveUsers | Where-Object { $_ -ne $User }
+    $RemoveUsers = $ApprovedUsers | Where-Object { $_ -ne $User }
 }
 
 #Remove-SPOUser 
